@@ -63,6 +63,7 @@ static xmms_medialib_entry_t xmms_medialib_entry_new_insert (xmms_medialib_sessi
 #include "medialib_ipc.c"
 
 #define SESSION(x) MEDIALIB_SESSION(medialib, x)
+#define XMMS_DEFAULT_SOURCE_PREFERENCES "server:client/*:plugin/playlist:plugin/id3v2:plugin/segment:plugin/*:*"
 
 /**
  *
@@ -84,16 +85,7 @@ struct xmms_medialib_St {
 	s4_sourcepref_t *default_sp;
 };
 
-static const gchar *source_pref[] = {
-	"server",
-	"client/*",
-	"plugin/playlist",
-	"plugin/id3v2",
-	"plugin/segment",
-	"plugin/*",
-	"*",
-	NULL
-};
+ 
 
 static void
 xmms_medialib_destroy (xmms_object_t *object)
@@ -108,6 +100,77 @@ xmms_medialib_destroy (xmms_object_t *object)
 	xmms_medialib_unregister_ipc_commands ();
 }
 
+static gboolean
+xmms_medialib_validate_source_preferences_string_single (const gchar *value)
+{
+	gboolean ret;
+	gchar *test_str;
+	int i;
+	
+	test_str = g_strdup (value);
+	g_strstrip (test_str);
+
+	if (test_str[0] == '\0') {
+		ret = false;
+	} else {
+		ret = true;
+		for (i = 0; test_str[i] != '\0'; i++) {
+			if (test_str[i] == ':') {
+				ret = false;
+				break;
+			}
+		}
+	}
+	g_free(test_str);
+	return ret;
+}
+
+static gboolean
+xmms_medialib_validate_source_preferences_string (const gchar *value)
+{
+	gboolean ret = true;
+	gchar **sp_strv;
+	int i, len;
+	
+	if (value[0] == '\0') {
+		ret = false;
+	} else {
+		sp_strv = g_strsplit (value, ":", -1);
+		len = g_strv_length (sp_strv);
+		for (i = 0; ret && i < len; i++) {
+			ret = xmms_medialib_validate_source_preferences_string_single (sp_strv[i]);
+		}
+		g_strfreev (sp_strv);
+	}
+	return ret;
+}
+
+/**
+ *  Called when the config property "medialib.source_preferences" has changed.
+ */
+static void
+on_medialib_source_preferences_changed (xmms_object_t *object, xmmsv_t *_data, gpointer udata)
+{
+	xmms_config_property_t *prop = (xmms_config_property_t *) object;
+	xmms_medialib_t *medialib = (xmms_medialib_t *) udata;
+	s4_sourcepref_t *new_sp, *old_sp;
+	const gchar *value;
+
+	value = xmms_config_property_get_string (prop);
+
+	/* if client sends us an invalid sp string, set it back to the default */
+	new_sp = xmms_medialib_source_preferences_from_string (value);
+	if (new_sp == NULL) { 
+		xmms_config_property_set_data (prop, XMMS_DEFAULT_SOURCE_PREFERENCES);
+		return;
+	} else {
+		old_sp = medialib->default_sp;
+		g_atomic_pointer_set (&medialib->default_sp,
+		                      (gpointer) new_sp);
+		s4_sourcepref_unref (old_sp);
+	}
+}
+  
 #define XMMS_MEDIALIB_SOURCE_SERVER "server"
 
 /**
@@ -122,6 +185,8 @@ xmms_medialib_init (void)
 	xmms_config_property_t *cfg;
 	xmms_medialib_t *medialib;
 	const gchar *medialib_path;
+	const gchar *value;
+
 	gchar *path;
 
 	const gchar *indices[] = {
@@ -146,10 +211,35 @@ xmms_medialib_init (void)
 
 	medialib_path = xmms_config_property_get_string (cfg);
 	medialib->s4 = xmms_medialib_database_open (medialib_path, indices);
-	medialib->default_sp = s4_sourcepref_create (source_pref);
+
+	cfg = xmms_config_property_register ("medialib.source_preferences",
+	                                     XMMS_DEFAULT_SOURCE_PREFERENCES,
+	                                     on_medialib_source_preferences_changed,
+	                                     (gpointer) medialib);
+
+	value = xmms_config_property_get_string (cfg);
+
+	medialib->default_sp = xmms_medialib_source_preferences_from_string (value);
 
 	return medialib;
 }
+
+s4_sourcepref_t * 
+xmms_medialib_source_preferences_from_string (const gchar *value)
+{
+	s4_sourcepref_t *sp;
+	gchar **strv;
+
+	if (!xmms_medialib_validate_source_preferences_string(value)) {
+		sp = NULL;
+	} else {
+		strv = g_strsplit (value, ":", -1);
+		sp = s4_sourcepref_create ((const gchar **) strv);
+		g_strfreev (strv);
+	}
+	return sp;
+}
+
 
 s4_sourcepref_t *
 xmms_medialib_get_source_preferences (xmms_medialib_t *medialib)

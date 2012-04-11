@@ -32,6 +32,7 @@ typedef struct xmms_medialib_session_St xmms_medialib_session_t;
 
 xmms_medialib_t *xmms_medialib_init (void);
 s4_t *xmms_medialib_get_database_backend (xmms_medialib_t *medialib);
+s4_sourcepref_t *xmms_medialib_source_preferences_from_string (const gchar *value);
 s4_sourcepref_t *xmms_medialib_get_source_preferences (xmms_medialib_t *medialib);
 char *xmms_medialib_uuid (xmms_medialib_t *mlib);
 s4_resultset_t *xmms_medialib_session_query (xmms_medialib_session_t *s, s4_fetchspec_t *spec, s4_condition_t *cond);

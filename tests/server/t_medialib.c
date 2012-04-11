@@ -68,6 +68,29 @@ medialib_query (xmmsv_coll_t *coll, xmmsv_t *spec, xmms_error_t *err)
 	return ret;
 }
 
+
+
+CASE (test_source_preferences_validation)
+{
+	s4_sourcepref_t *sp;
+	int i;
+	
+	gchar *good_strings[] = { "server", "plugin/soup", "&even&^this is okay", NULL };
+	gchar *bad_strings[] = { "server:", "plugin/soup::dude/mcdude", " ", "", " : ", NULL };
+
+	for (i = 0; i < g_strv_length(good_strings); i++) {
+		sp = xmms_medialib_source_preferences_from_string(good_strings[i]);
+		CU_ASSERT_PTR_NOT_NULL(sp);
+		if (sp != NULL) s4_sourcepref_unref(sp);
+	}
+
+	for (i = 0; i < g_strv_length(bad_strings); i++) {
+		sp = xmms_medialib_source_preferences_from_string(bad_strings[i]);
+		CU_ASSERT_PTR_NULL(sp);
+		if (sp != NULL) s4_sourcepref_unref(sp);
+	}
+}
+
 CASE (test_entry_property_get)
 {
 	xmms_medialib_session_t *session;
