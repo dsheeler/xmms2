@@ -395,6 +395,10 @@ E: syscrash2k@gmail.com
 W: http://syscrash.ca
 D: Volume normalization plugin
 
+N: Daniel Sheeler
+E: dsheeler@pobox.com
+D: Added a config parameter
+
 N: Ben Slote
 E: bslote@gmail.com
 D: Pythonbindings fix
