@@ -15,6 +15,7 @@
  */
 #include "xmmspriv/xmms_fetch_spec.h"
 #include "xmmspriv/xmms_fetch_info.h"
+#include "xmmspriv/xmms_medialib.h"
 #include "xmms/xmms_log.h"
 #include <string.h>
 
@@ -179,48 +180,30 @@ static s4_sourcepref_t *
 normalize_metadata_prefs (xmmsv_t *fetch, s4_sourcepref_t *prefs, xmms_error_t *err)
 {
 	s4_sourcepref_t *sp;
-	xmmsv_list_iter_t *it;
-	const char **strv;
-	const gchar *str;
-	xmmsv_t *list;
-	gint length, idx;
+	const gchar *sp_str;
+	xmmsv_t *get_str;
 
-	if (!xmmsv_dict_get (fetch, "source-preference", &list)) {
+	if (!xmmsv_dict_get (fetch, "source-preference", &get_str)) {
 		return s4_sourcepref_ref (prefs);
 	}
-
-	if (xmmsv_get_type (list) != XMMSV_TYPE_LIST) {
-		const gchar *message = "'source-preference' must be a list of strings.";
+ 
+	if (xmmsv_get_type (get_str) != XMMSV_TYPE_STRING) {
+		const gchar *message = "'source-preference' must be a string.";
 		xmms_error_set (err, XMMS_ERROR_INVAL, message);
 		return NULL;
 	}
 
-	length = xmmsv_list_get_size (list);
-	if (length == 0) {
+    xmmsv_get_string (get_str, &sp_str);
+    if (sp_str[0] == '\0') {
 		return s4_sourcepref_ref (prefs);
 	}
-
-	strv = g_new0 (const char *, length + 1);
-
-	idx = 0;
-
-	xmmsv_get_list_iter (list, &it);
-	while (xmmsv_list_iter_valid (it)) {
-		if (!xmmsv_list_iter_entry_string (it, &str)) {
-			const gchar *message = "'source-preference' must be a list of strings.";
-			xmms_error_set (err, XMMS_ERROR_INVAL, message);
-			g_free (strv);
-			return NULL;
-		}
-
-		strv[idx++] = str;
-
-		xmmsv_list_iter_next (it);
-	}
-
-	sp = s4_sourcepref_create (strv);
-	g_free (strv);
-
+ 
+	sp = xmms_medialib_source_preferences_from_string (sp_str);
+    xmmsv_unref (get_str);
+    if (!sp) {
+        const gchar *message = "'source-preference' value is invalid.";
+        xmms_error_set (err, XMMS_ERROR_INVAL, message);
+    }
 	return sp;
 }
 

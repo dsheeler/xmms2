@@ -386,27 +386,27 @@ CASE (test_metadata_fetch_spec)
 
 
 	/* valid source-preferences parameter */
-	spec = xmmsv_from_xson ("{ 'type': 'metadata', 'get': ['value'], 'source-preference': ['*'] }");
+	spec = xmmsv_from_xson ("{ 'type': 'metadata', 'get': ['value'], 'source-preference': '*' }");
 	result = medialib_query (universe, spec, &err);
 	CU_ASSERT_FALSE (xmms_error_iserror (&err));
 	xmmsv_unref (result);
 	xmmsv_unref (spec);
 
 	/* invalid source-preferences parameter */
-	spec = xmmsv_from_xson ("{ 'type': 'metadata', 'get': ['value'], 'source-preference': 0 }");
+	spec = xmmsv_from_xson ("{ 'type': 'metadata', 'get': ['value'], 'source-preference': 'ser::ver' }");
 	CU_ASSERT_PTR_NULL (medialib_query (universe, spec, &err));
 	CU_ASSERT_TRUE (xmms_error_iserror (&err));
 	xmmsv_unref (spec);
-
+	
 	/* empty source-preferences parameter */
-	spec = xmmsv_from_xson ("{ 'type': 'metadata', 'get': ['value'], 'source-preference': [] }");
+	spec = xmmsv_from_xson ("{ 'type': 'metadata', 'get': ['value'], 'source-preference': '' }");
 	result = medialib_query (universe, spec, &err);
 	CU_ASSERT_FALSE (xmms_error_iserror (&err));
 	xmmsv_unref (result);
 	xmmsv_unref (spec);
 
 	/* invalid source-preferences parameter */
-	spec = xmmsv_from_xson ("{ 'type': 'metadata', 'get': ['value'], 'source-preference': [0] }");
+	spec = xmmsv_from_xson ("{ 'type': 'metadata', 'get': ['value'], 'source-preference': '0/twono/good:*:okay :: not okay:' }");
 	CU_ASSERT_PTR_NULL (medialib_query (universe, spec, &err));
 	CU_ASSERT_TRUE (xmms_error_iserror (&err));
 	xmmsv_unref (spec);
