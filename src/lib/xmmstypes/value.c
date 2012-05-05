@@ -2619,7 +2619,7 @@ xmmsv_build_organize (xmmsv_t *data)
  * @param sourcepref A list of sources, first one has the highest priority
  * @return A metadata fetch specification
  */
-xmmsv_t *xmmsv_build_metadata (xmmsv_t *fields, xmmsv_t *get, const char *aggregate, xmmsv_t *sourcepref)
+xmmsv_t *xmmsv_build_metadata (xmmsv_t *fields, xmmsv_t *get, const char *aggregate, xmmsv_t *sourcepref_string)
 {
 	xmmsv_t *res = xmmsv_new_dict ();
 	if (res == NULL)
@@ -2647,9 +2647,8 @@ xmmsv_t *xmmsv_build_metadata (xmmsv_t *fields, xmmsv_t *get, const char *aggreg
 		xmmsv_dict_set (res, "get", get);
 		xmmsv_unref (get);
 	}
-	if (sourcepref != NULL) {
-		xmmsv_dict_set (res, "source-preference", sourcepref);
-		xmmsv_unref (sourcepref);
+	if (sourcepref_string != NULL) {
+		xmmsv_dict_set (res, "source-preference", sourcepref_string);
 	}
 	if (aggregate != NULL) {
 		xmmsv_dict_set_string (res, "aggregate", aggregate);
