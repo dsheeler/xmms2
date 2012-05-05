@@ -21,10 +21,12 @@
 struct xmms_medialib_session_St {
 	xmms_medialib_t *medialib;
 	s4_transaction_t *trans;
+	s4_sourcepref_t *sp;
 	GHashTable *added;
 	GHashTable *updated;
 	GHashTable *removed;
 	xmmsv_t *vals;
+	
 };
 
 static void xmms_medialib_session_free (xmms_medialib_session_t *session);
@@ -51,7 +53,9 @@ xmms_medialib_session_begin_internal (xmms_medialib_t *medialib,
 	ret->removed = g_hash_table_new (NULL, NULL);
 
 	ret->vals = xmmsv_new_list ();
-
+	
+	ret->sp = xmms_medialib_get_source_preferences(medialib);
+	
 	return ret;
 }
 
@@ -116,7 +120,7 @@ xmms_medialib_session_commit (xmms_medialib_session_t *session)
 s4_sourcepref_t *
 xmms_medialib_session_get_source_preferences (xmms_medialib_session_t *session)
 {
-	return xmms_medialib_get_source_preferences (session->medialib);
+	return s4_sourcepref_ref (session->sp);
 }
 
 s4_resultset_t *
@@ -246,6 +250,7 @@ xmms_medialib_session_free (xmms_medialib_session_t *session)
 
 	xmmsv_unref (session->vals);
 
+	s4_sourcepref_unref(session->sp);
 	g_free (session);
 }
 
