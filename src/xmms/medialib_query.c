@@ -401,10 +401,7 @@ filter_condition (xmms_medialib_session_t *session,
 	}
 
 	if (xmmsv_coll_attribute_get (coll, "source-preference", &val)) {
-		gchar **prefs;
-		prefs = g_strsplit (val, ":", -1);
-		sp = s4_sourcepref_create ((const gchar **) prefs);
-		g_strfreev (prefs);
+		sp = xmms_medialib_source_preferences_from_string (val);
 	} else {
 		sp = xmms_medialib_session_get_source_preferences (session);
 	}
