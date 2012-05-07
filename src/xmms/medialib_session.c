@@ -138,7 +138,6 @@ xmms_medialib_session_property_set (xmms_medialib_session_t *session,
                                     const s4_val_t *value,
                                     const gchar *source)
 {
-	const gchar *sources[2] = { source, NULL };
 	const s4_result_t *res;
 	s4_condition_t *cond;
 	s4_fetchspec_t *spec;
@@ -150,7 +149,7 @@ xmms_medialib_session_property_set (xmms_medialib_session_t *session,
 
 	song_id = s4_val_new_int (entry);
 
-	sp = s4_sourcepref_create (sources);
+	sp = xmms_medialib_source_preferences_from_string (source);
 
 	cond = s4_cond_new_filter (S4_FILTER_EQUAL, "song_id", song_id,
 	                           sp, S4_CMP_CASELESS, S4_COND_PARENT);
