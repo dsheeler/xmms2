@@ -1210,13 +1210,12 @@ xmms_medialib_property_remove (xmms_medialib_session_t *session,
                                const gchar *source, const gchar *key,
                                xmms_error_t *error)
 {
-	const char *sources[2] = { source, NULL };
 	s4_sourcepref_t *sp;
 	s4_resultset_t *set;
 	const s4_result_t *res;
 	s4_val_t *song_id;
 
-	sp = s4_sourcepref_create (sources);
+	sp = xmms_medialib_source_preferences_from_string (source);
 
 	song_id = s4_val_new_int (entry);
 	set = xmms_medialib_filter (session, "song_id", song_id,
